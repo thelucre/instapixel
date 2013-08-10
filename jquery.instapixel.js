@@ -1,16 +1,16 @@
 /***********************************************
-
  InstaPIXEL jQuery Plugin
  Author: 	Eric Howard
  URL: 		http://www.thelucre.com
+ GitHub:	https://github.com/thelucre/instapixel
  Veriosn:	v0.0.4	  
 
  Settings:
- - 'debug' 				[true] false, will output information/errors to the console
- - 'imageURL'			['.jpg'] image url to pixelate and draw to the canvas element
- - 'aspectRatio'		true [false], will maintain the image aspect ratio to the canvas size
+ - 'debug' 							[true] false, will output information/errors to the console
+ - 'imageURL'						['.jpg'] image url to pixelate and draw to the canvas element
+ - 'aspectRatio'				true [false], will maintain the image aspect ratio to the canvas size
  - 'startingPixelSize'	[10], initial size of the pixel drawn, relative to the original image dimensions
- - 'resizeCanvas'		[true] false, will resie the canvas to the passed in canvas size
+ - 'resizeCanvas'				[true] false, will resie the canvas to the passed in canvas size
 
  Event Triggers:
  - 'imageLoaded'		the image has been loaded to memory, check parameter success to confirm
@@ -34,19 +34,19 @@
 
 		// DEFAULT SETTINGS
 		var defaults = {
-			'debug': 				true 
-		,	'imageURL': 			'.jpg' // some dummy
- 		,	'aspectRatio': 			false
+			'debug': 							true 
+		,	'imageURL': 					'.jpg' // some dummy
+ 		,	'aspectRatio': 				false
  		,	'startingPixelSize': 	10
- 		,	'resizeCanvas': 		'true' 
+ 		,	'resizeCanvas': 			'true' 
 		};
 		var options = $.extend({}, defaults, options); 
-		var imageURL	// stores the loaded image
-		,	ctx 		// ctx of the displayed canvas
-		,	canv 		// displayed canvas element
-		, 	tmpcanv 	// buffer canvas for reading pixels
-		, 	tmpctx; 	// buffer context for reading pixels 
-		var self = this; // globalized within plugin scope
+		var imageURL			// stores the loaded image
+		,	ctx 						// ctx of the displayed canvas
+		,	canv 						// displayed canvas element
+		,	tmpcanv 				// buffer canvas for reading pixels
+		,	tmpctx; 				// buffer context for reading pixels 
+		var self = this; 	// globalized within plugin scope
 
 		message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
 
