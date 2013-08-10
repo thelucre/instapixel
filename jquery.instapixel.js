@@ -20,78 +20,78 @@
  ***********************************************/
 (function($) {
 
-    $.fn.instapixel = function( options ) {
-    	// CONSTANTS
-    	var INSTAPIXEL = 'InstaPIXEL'
-    	,	MSG_NOT_CANVAS_ELEMENT = 'The element is not of type <CANVAS>'
-    	,	MSG_TYPE_ERROR = 'ERROR'
-    	,	MSG_TYPE_INFO = 'INFO'
-    	,	MSG_INSTAPIXEL_STARTED = "InstaPIXEL plugin started on element."
-    	,	MSG_IMAGE_LOAD_ATTEMPT = 'Attempting to load image.'
-    	,	MSG_IMAGE_LOAD_ERROR = 'Image could not be loaded.'
-    	,	MSG_IMAGE_LOADED = 'Image successfully loaded.'
-    	,	MSG_CANVAS_NOT_SUPPORTED = 'The <CANVAS> element is not supported in this browser.';
+	$.fn.instapixel = function( options ) {
+		// CONSTANTS
+		var INSTAPIXEL = 'InstaPIXEL'
+		,	MSG_NOT_CANVAS_ELEMENT = 'The element is not of type <CANVAS>'
+		,	MSG_TYPE_ERROR = 'ERROR'
+		,	MSG_TYPE_INFO = 'INFO'
+		,	MSG_INSTAPIXEL_STARTED = "InstaPIXEL plugin started on element."
+		,	MSG_IMAGE_LOAD_ATTEMPT = 'Attempting to load image.'
+		,	MSG_IMAGE_LOAD_ERROR = 'Image could not be loaded.'
+		,	MSG_IMAGE_LOADED = 'Image successfully loaded.'
+		,	MSG_CANVAS_NOT_SUPPORTED = 'The <CANVAS> element is not supported in this browser.';
 
-    	// DEFAULT SETTINGS
-    	var defaults = {
-    		'debug': 				true 
-    	,	'imageURL': 			'.jpg' // some dummy
+		// DEFAULT SETTINGS
+		var defaults = {
+			'debug': 				true 
+		,	'imageURL': 			'.jpg' // some dummy
  		,	'aspectRatio': 			false
  		,	'startingPixelSize': 	10
  		,	'resizeCanvas': 		'true' 
-    	};
-    	var options = $.extend({}, defaults, options); 
-    	var imageURL	// stores the loaded image
-    	,	ctx 		// ctx of the displayed canvas
-    	,	canv 		// displayed canvas element
-    	, 	tmpcanv 	// buffer canvas for reading pixels
-    	, 	tmpctx; 	// buffer context for reading pixels 
-    	var self = this; // globalized within plugin scope
+		};
+		var options = $.extend({}, defaults, options); 
+		var imageURL	// stores the loaded image
+		,	ctx 		// ctx of the displayed canvas
+		,	canv 		// displayed canvas element
+		, 	tmpcanv 	// buffer canvas for reading pixels
+		, 	tmpctx; 	// buffer context for reading pixels 
+		var self = this; // globalized within plugin scope
 
-    	message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
+		message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
 
-    	if(!meetsRequirements()) {
-    		return;
-    	}
+		if(!meetsRequirements()) {
+			return;
+		}
 
 		canv = this[0];
 		ctx = canv.getContext('2d');
 		loadImage(options.imageURL);
 
-        // UTILITY FUNCTIONS
-        function loadImage( imgurl ) {
-        	image = new Image;
-		    image.onload = function() {
-		        if ('naturalHeight' in this) {
-		            if (this.naturalHeight + this.naturalWidth === 0) {
-		                this.onerror();
-		                return;
-		            }
-		        } else if (this.width + this.height == 0) {
-		            this.onerror();
-		            return;
-		        }
-		        resizeCanvas();
-		        ctx.drawImage(this, 0, 0, canv.width, canv.height);
-		        message( MSG_TYPE_INFO, MSG_IMAGE_LOADED, this.src );
-		        self.trigger("imageLoaded", true);
-		    };
-		    image.onerror = function() {
-		        message( MSG_TYPE_ERROR, MSG_IMAGE_LOAD_ERROR, this.src );
-		        self.trigger("imageLoaded", false);
-		    };
-		    image.src = imgurl;
-		    message( MSG_TYPE_INFO, MSG_IMAGE_LOAD_ATTEMPT, image.src );
-        }
+		// UTILITY FUNCTIONS
+		function loadImage( imgurl ) {
+			image = new Image;
+			image.onload = function() {
+				if ('naturalHeight' in this) {
+					if (this.naturalHeight + this.naturalWidth === 0) {
+						this.onerror();
+						return;
+					}
+				} else if (this.width + this.height == 0) {
+					this.onerror();
+					return;
+				}
+				resizeCanvas();
+				ctx.drawImage(this, 0, 0, canv.width, canv.height);
+				message( MSG_TYPE_INFO, MSG_IMAGE_LOADED, this.src );
+				self.trigger("imageLoaded", true);
+			};
+			image.onerror = function() {
+				message( MSG_TYPE_ERROR, MSG_IMAGE_LOAD_ERROR, this.src );
+				self.trigger("imageLoaded", false);
+			};
+			image.src = imgurl;
+			message( MSG_TYPE_INFO, MSG_IMAGE_LOAD_ATTEMPT, image.src );
+		}
 
-        function message( type, msg, info) {
-        	if(options.debug) {
-        		info ? info = " [ " + info + " ] " : info = '';
-        		console.log( INSTAPIXEL + " " + type + " : " + msg + info );
-        	}
-        }
+		function message( type, msg, info) {
+			if(options.debug) {
+				info ? info = " [ " + info + " ] " : info = '';
+				console.log( INSTAPIXEL + " " + type + " : " + msg + info );
+			}
+		}
 
-        function isCanvasSupported(){
+		function isCanvasSupported(){
 			var elem = document.createElement('canvas');
 			return !!(elem.getContext && elem.getContext('2d'));
 		}
@@ -105,17 +105,17 @@
 
 		function meetsRequirements() {
 			if(!isCanvasSupported()) {
-	    		message( MSG_TYPE_ERROR, MSG_CANVAS_NOT_SUPPORTED );
-	    		return false;
-	    	}
+				message( MSG_TYPE_ERROR, MSG_CANVAS_NOT_SUPPORTED );
+				return false;
+			}
 
-	    	if(!self.is("canvas")) {
-	    		message( MSG_TYPE_ERROR, MSG_NOT_CANVAS_ELEMENT );
-	    		return false;
-	    	}
+			if(!self.is("canvas")) {
+				message( MSG_TYPE_ERROR, MSG_NOT_CANVAS_ELEMENT );
+				return false;
+			}
 
-	    	return true;
+			return true;
 		}
-    }
+	}
 
 }(jQuery));
