@@ -1,9 +1,33 @@
 <html>
+
 	<head>
+		<meta charset="utf-8">
 		<script src="jquery-1.10.2.min.js"></script>
 		<script src="jquery.instapixel.js"></script>
 	</head>
+
 	<body>
 		<canvas id="ip"></canvas>
+		<h2>this is great</h2>
 	</body>
+
+	<script>
+		$(document).ready( function() {
+		    $('#ip').instapixel("test3.jpg");
+		});
+
+		$('#ip').on("imageLoading", function() {
+		  console.log("image is loading");
+		});
+
+		$('#ip').on("imageLoaded", function(e, success) {
+			if(success) {
+				alert('yay!');
+			} else {
+				alert('boooo');
+			}
+		});
+
+	</script>
+
 </html>
