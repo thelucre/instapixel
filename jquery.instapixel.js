@@ -3,7 +3,7 @@
  Author: 	Eric Howard
  URL: 		http://www.thelucre.com
  GitHub:	https://github.com/thelucre/instapixel
- Version:	v0.0.5	  
+ Version:	v0.0.5   	  
 
  Settings:
  - 'debug' 							[true] false, will output information/errors to the console
