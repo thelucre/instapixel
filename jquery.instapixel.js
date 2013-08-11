@@ -3,20 +3,27 @@
  Author:    Eric Howard
  URL:       http://www.thelucre.com
  GitHub:    https://github.com/thelucre/instapixel
- Version:   v0.0.6       
+ Version:   v0.0.7      
 
  Settings:
  - 'debug'              [true] false, will output information/errors to the console
  - 'imageURL'           ['.jpg'] image url to pixelate and draw to the canvas element
  - 'aspectRatio'        true [false], will maintain the image aspect ratio to the canvas size
  - 'startingPixelSize'  [10], initial size of the pixel drawn, relative to the original image dimensions
- - 'resizeCanvas'       [true] false, will resie the canvas to the passed in canvas size
+ - 'resizeCanvas'       [true] false, will resize the canvas to the passed in canvas size
 
  Event Triggers:
  - 'imageLoaded'        the image has been loaded to memory, check parameter success to confirm
  - 'imageLoading'       the plugin is loading the current image
  - 'imageParsing'       the image pixels are being parsed 
  - 'imageParsed'        the image pixels have been parsed
+
+ Public Methods:
+ - setSize( size )             sets the size of the pixelation to draw, does not redraw
+ - getSize()                   gets the size of the pixels being drawn
+ - redraw( size )              redraws the canvas at a certain size, or the current size in no parameter given
+ - clear()                     clears the current canvas
+ - output( w, h, dpi )         returns an image object of the current canvas at WxH inches x dpi pixels 
  ***********************************************/
 
 (function($) {
@@ -32,7 +39,9 @@
         ,   MSG_IMAGE_LOAD_ATTEMPT = 'Attempting to load image.'
         ,   MSG_IMAGE_LOAD_ERROR = 'Image could not be loaded.'
         ,   MSG_IMAGE_LOADED = 'Image successfully loaded.'
-        ,   MSG_CANVAS_NOT_SUPPORTED = 'The <CANVAS> element is not supported in this browser.';
+        ,   MSG_CANVAS_NOT_SUPPORTED = 'The <CANVAS> element is not supported in this browser.'
+        ,   MSG_IMAGE_PATH_INVALID = 'Image path is not in a valid format.'
+        ,   MSG_NO_IMAGE_LOADED = 'No image has been loaded to the InstaPIXEL object.';
 
         // GLOBALS
         var image       // stores the loaded image
@@ -50,22 +59,23 @@
         ,   'aspectRatio':   false
         ,   'pixelSize':     10
         ,   'resizeCanvas':  false
-        };
+        }
 
-        var plugin = this;
+        var plugin = this;      // globalize the plugin 
 
         plugin.settings = {}
-        var _size;
+        var _size
+        ,   _imgURL;
 
         var $element = $(element),
              element = element;
 
         plugin.init = function() {
             plugin.settings = $.extend({}, defaults, options);
-            // code goes here
-            plugin.setSize(plugin.settings.pixelSize);
 
-            // code goes here
+            plugin.setSize(plugin.settings.pixelSize);
+            plugin.setImage( plugin.settings.imageURL );
+
             message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
 
             if(!meetsRequirements()) {
@@ -76,14 +86,22 @@
             ctx = canv.getContext('2d');
             tmpcanv = $(element).clone()[0];
             tmpctx = tmpcanv.getContext('2d');
-            loadImage(options.imageURL);
+            loadImage( plugin._imgURL );
         }
 
         /*************************************************
          * PUBLIC METHODS
          *************************************************/
-        plugin.foo_public_method = function() {
+        plugin.redraw = function( size ) {
             // code goes here
+            if(plugin.setSize( size )) {
+                drawPixelatedToCanvas();
+            }
+        }
+
+        plugin.clear = function( ) {
+            // code goes here
+            canv.width = canv.width;
         }
 
         /*************************************************
@@ -114,6 +132,10 @@
         } // end getPixelDataArray()
 
         var drawPixelatedToCanvas = function() {
+            if(typeof(pix) === undefined || !pix) { 
+                message( MSG_TYPE_ERROR, MSG_NO_IMAGE_LOADED );
+                return;
+            }
             // amount to scale each pixel drawn for cnavas size
             var canvScale = canv.width / tmpcanv.width; // 0.490196078
 
@@ -157,7 +179,7 @@
         }
 
         // UTILITY FUNCTIONS
-        var loadImage = function( imgurl ) {
+        var loadImage = function( imgURL ) {
             image = new Image;
             image.onload = function() {
                 if ('naturalHeight' in this) {
@@ -180,12 +202,12 @@
                 message( MSG_TYPE_ERROR, MSG_IMAGE_LOAD_ERROR, this.src );
                 $(element).trigger("imageLoaded", false);
             };
-            image.src = imgurl;
+            image.src = imgURL;
             message( MSG_TYPE_INFO, MSG_IMAGE_LOAD_ATTEMPT, image.src );
         }
 
         var message = function( type, msg, info) {
-            if(options.debug) {
+            if(plugin.settings.debug) {
                 info ? info = " [ " + info + " ] " : info = '';
                 console.log( INSTAPIXEL + " " + type + " : " + msg + info );
             }
@@ -197,7 +219,7 @@
         }
 
         var resizeCanvases = function() {
-            if(options.resizeCanvas) {
+            if(plugin.settings.resizeCanvas) {
                 canv.width = image.width;
                 canv.height = image.height;
             }
@@ -226,8 +248,25 @@
         }
 
         plugin.setSize = function(size) {
+            if(isNaN(size)) return false;
             _size = size;
+            return true;
         }
+
+        plugin.setImage = function( imgURL, redraw ) {
+            if(imgURL == '' || imgURL === undefined) {
+                message(MSG_TYPE_ERROR, MSG_IMAGE_PATH_INVALID, imgURL);
+                return;
+            }
+            plugin._imgURL = imgURL;
+            if(redraw) { loadImage( imgURL ); }
+        }
+
+        plugin.getImage = function() {
+            return plugin._imgURL;
+        }
+
+
         plugin.init();
 
     }
