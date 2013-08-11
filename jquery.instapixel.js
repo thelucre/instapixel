@@ -3,11 +3,35 @@
  Author:    Eric Howard - http://www.thelucre.com
  URL:       http://www.instapixel.org
  GitHub:    https://github.com/thelucre/instapixel
- Version:   v0.1.0     
+ Version:   v0.1.1     
+ 
+*****************************************************************************************
+ The MIT License (MIT)
+
+    Copyright (c) 2013 Eric Howard
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+*****************************************************************************************
 
  Settings:
  - 'debug'              [true] false, will output information/errors to the console
- - 'imageURL'           ['.jpg'] image url to pixelate and draw to the canvas element
+ - 'imgURL'             ['.jpg'] image url to pixelate and draw to the canvas element
  - 'aspectRatio'        true [false], will maintain the image aspect ratio to the canvas size
  - 'startingPixelSize'  [10], initial size of the pixel drawn, relative to the original image dimensions
  - 'resizeCanvas'       [true] false, will resize the canvas to the passed in canvas size
@@ -21,10 +45,22 @@
  Public Methods:
  - setSize( size )             sets the size of the pixelation to draw, does not redraw
  - getSize()                   gets the size of the pixels being drawn
+ - setImage( URL, [redraw?] )  sets the image url with the option to reload and draw the image
+ - getImage( )                 gets the currently loaded image url (might be messy if base64...)
  - redraw( size )              redraws the canvas at a certain size, or the current size in no parameter given
  - clear()                     clears the current canvas
  - output( w, h, dpi )         returns an image object of the current canvas at WxH inches x dpi pixels 
+
+ TODO
+ _ fix any references to 612 pixels
+ _ configure draw method for scaling out for hi res
+ _ experiment with dettaching elements for faster canvas draws
+ _ reset() function to clear all global instapixel vars (img, pix, tmpcnv, tmpctx, etc)
+ _ aspectRatio code to draw the image
+
  ***********************************************/
+
+
 (function($) {
 
     $.instapixel = function(element, options) {
@@ -240,6 +276,7 @@
 
             return true;
         }
+
         /*************************************************
          * PROPERTIES / GETS & SETS
          *************************************************/
@@ -265,7 +302,6 @@
         plugin.getImage = function() {
             return plugin._imgURL;
         }
-
 
         plugin.init();
 
