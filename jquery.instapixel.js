@@ -1,9 +1,9 @@
 /***********************************************
  InstaPIXEL jQuery Plugin
- Author:    Eric Howard
- URL:       http://www.thelucre.com
+ Author:    Eric Howard - http://www.thelucre.com
+ URL:       http://www.instapixel.org
  GitHub:    https://github.com/thelucre/instapixel
- Version:   v0.0.7      
+ Version:   v0.1.0     
 
  Settings:
  - 'debug'              [true] false, will output information/errors to the console
@@ -25,7 +25,6 @@
  - clear()                     clears the current canvas
  - output( w, h, dpi )         returns an image object of the current canvas at WxH inches x dpi pixels 
  ***********************************************/
-
 (function($) {
 
     $.instapixel = function(element, options) {
@@ -55,7 +54,8 @@
         // DEFAULT SETTINGS
         var defaults = {
             'debug':         true 
-        ,   'imageURL':      '.jpg' // some dummy
+        ,   'imgURL':        '.jpg' // some dummy
+        ,   'imgObject':     null
         ,   'aspectRatio':   false
         ,   'pixelSize':     10
         ,   'resizeCanvas':  false
@@ -74,7 +74,7 @@
             plugin.settings = $.extend({}, defaults, options);
 
             plugin.setSize(plugin.settings.pixelSize);
-            plugin.setImage( plugin.settings.imageURL );
+            plugin.setImage( plugin.settings.imgURL );
 
             message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
 
