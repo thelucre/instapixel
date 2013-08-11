@@ -3,7 +3,7 @@
  Author:    Eric Howard - http://www.thelucre.com
  URL:       http://www.instapixel.org
  GitHub:    https://github.com/thelucre/instapixel
- Version:   v0.1.1     
+ Version:   v0.1.2     
  
 *****************************************************************************************
  The MIT License (MIT)
@@ -52,12 +52,15 @@
  - output( w, h, dpi )         returns an image object of the current canvas at WxH inches x dpi pixels 
 
  TODO
- _ fix any references to 612 pixels
+ X fix any references to 612 pixels
  _ configure draw method for scaling out for hi res
- _ experiment with dettaching elements for faster canvas draws
+ X experiment with dettaching elements for faster canvas draws
  _ reset() function to clear all global instapixel vars (img, pix, tmpcnv, tmpctx, etc)
  _ aspectRatio code to draw the image
-
+ _ set triggers for output functions processing / complete
+ _ constrain pixel size to > 0 and < width || height (floor too, for floats)
+ _ if size == 1, jsut draw the original image
+ _ set debug message for image dimensions, canvas dimensions, all triggers
  ***********************************************/
 
 
@@ -76,7 +79,8 @@
         ,   MSG_IMAGE_LOADED = 'Image successfully loaded.'
         ,   MSG_CANVAS_NOT_SUPPORTED = 'The <CANVAS> element is not supported in this browser.'
         ,   MSG_IMAGE_PATH_INVALID = 'Image path is not in a valid format.'
-        ,   MSG_NO_IMAGE_LOADED = 'No image has been loaded to the InstaPIXEL object.';
+        ,   MSG_NO_IMAGE_LOADED = 'No image has been loaded to the InstaPIXEL object.'
+        ,   HI_RES_DPI_CONVERSION = 300/72;
 
         // GLOBALS
         var image       // stores the loaded image
@@ -131,13 +135,25 @@
         plugin.redraw = function( size ) {
             // code goes here
             if(plugin.setSize( size )) {
-                drawPixelatedToCanvas();
+                var pixelData = drawPixelatedToCanvas();
+                ctx.putImageData(pixelData, 0, 0);
             }
         }
 
         plugin.clear = function( ) {
             // code goes here
             canv.width = canv.width;
+        }
+
+        plugin.output = function( inches ) {
+            var pixelData = drawPixelatedToCanvas( inches );
+            var hiResCanvas = document.createElement('canvas')
+            ,   hiResCtx    = hiResCanvas.getContext('2d');
+            hiResCanvas.width = pixelData.width;
+            hiResCanvas.height = pixelData.height;
+            hiResCtx.putImageData(pixelData, 0, 0);
+            var dataURL = hiResCanvas.toDataURL("image/png");
+            return dataURL;
         }
 
         /*************************************************
@@ -167,43 +183,54 @@
             }
         } // end getPixelDataArray()
 
-        var drawPixelatedToCanvas = function() {
+        var drawPixelatedToCanvas = function( inches ) {
             if(typeof(pix) === undefined || !pix) { 
                 message( MSG_TYPE_ERROR, MSG_NO_IMAGE_LOADED );
                 return;
             }
-            // amount to scale each pixel drawn for cnavas size
-            var canvScale = canv.width / tmpcanv.width; // 0.490196078
 
+            var newcanv = document.createElement('canvas');
+            var newctx = newcanv.getContext('2d');
+            var canvScale;
+            if(inches) {
+                newcanv.width = inches / (canv.width / 72) * canv.width * HI_RES_DPI_CONVERSION;
+                newcanv.height = canv.height * ( newcanv.width / canv.width );
+                canvScale = newcanv.width / canv.width; 
+            } else {
+                newcanv.width = canv.width;
+                newcanv.height = canv.height;
+                canvScale = canv.width / tmpcanv.width; 
+            }
+        
             var tileSize = plugin.getSize();
 
             // size of the tile to be drawn
-            var canvTile = tileSize;
+            var canvTile = tileSize * canvScale;
 
             // number of pixels in row or column 
             var tiles = { 'x': Math.floor(tmpcanv.width / tileSize) 
-                          , 'y': Math.floor(tmpcanv.height / tileSize) };
+                        , 'y': Math.floor(tmpcanv.height / tileSize) };      
 
             // pad values used to make the number of square tiles even given any size canvas
             // so there will appear to be a perfect fit for all squares drawn
-            var pad = { 'x': canv.width % canvTile
-                            ,   'y': canv.height % canvTile };  // the total extra space on the canvas
+            var pad = { 'x': newcanv.width % canvTile
+                      , 'y': newcanv.height % canvTile };  // the total extra space on the canvas
 
             var padamt = {  'x' : pad.x / tiles.x
-                                    ,   'y' : pad.y / tiles.y };            // the padding per square that will be added to both sides
+                        ,   'y' : pad.y / tiles.y };            // the padding per square that will be added to both sides
 
             for(var x = 0; x < tiles.x; x++) {
               for(var y = 0; y < tiles.y; y++) { 
                     var colorCoords = { 'x': Math.floor(x * tileSize + tileSize / 2)
-                                                        ,   'y': Math.floor(y * tileSize + tileSize / 2) };
+                                      , 'y': Math.floor(y * tileSize + tileSize / 2) };
 
-                    if(colorCoords.x <= 0 ) colorCoords.x = 1;
-                    if(colorCoords.y <= 0) colorCoords.y = 1;
-                    if(colorCoords.x > 612 -1 ) colorCoords.x = 612 -1;
-                    if(colorCoords.y > 612 -1) colorCoords.y = 612 -1;
+                    if(colorCoords.x < 0 ) colorCoords.x = 0;
+                    if(colorCoords.y < 0) colorCoords.y = 0;
+                    if(colorCoords.x > image.width -1 ) colorCoords.x = image.width -1;
+                    if(colorCoords.y > image.height -1) colorCoords.y = image.height -1;
                     if(pix[colorCoords.y] && pix[colorCoords.y][colorCoords.x]) {
-                    ctx.fillStyle = pix[colorCoords.y][colorCoords.x];
-                        ctx.fillRect(   
+                        newctx.fillStyle = pix[colorCoords.y][colorCoords.x];
+                        newctx.fillRect(   
                             Math.floor(x * canvTile + x * padamt.x), 
                             Math.floor(y * canvTile + y * padamt.y), 
                             Math.floor((x * canvTile + x * padamt.x ) + canvTile + padamt.x),
@@ -211,7 +238,10 @@
                     }
                 }
             }
+
+            var pixelimage = newctx.getImageData(0,0,newcanv.width, newcanv.height);
             $(element).trigger("imageParsed");
+            return pixelimage;
         }
 
         // UTILITY FUNCTIONS
@@ -232,7 +262,7 @@
                 message( MSG_TYPE_INFO, MSG_IMAGE_LOADED, this.src );
                 $(element).trigger("imageLoaded", true);
                 getPixelDataArray( );
-                drawPixelatedToCanvas( );
+                plugin.redraw( plugin.getSize() );
             };
             image.onerror = function() {
                 message( MSG_TYPE_ERROR, MSG_IMAGE_LOAD_ERROR, this.src );
