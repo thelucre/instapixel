@@ -3,7 +3,7 @@
  Author:    Eric Howard - http://www.thelucre.com
  URL:       http://www.instapixel.org
  GitHub:    https://github.com/thelucre/instapixel
- Version:   v0.1.2     
+ Version:   v0.1.3     
  
 *****************************************************************************************
  The MIT License (MIT)
@@ -41,6 +41,8 @@
  - 'imageLoading'       the plugin is loading the current image
  - 'imageParsing'       the image pixels are being parsed 
  - 'imageParsed'        the image pixels have been parsed
+ - 'hiResProcessing'    the hi res version of being built into a new Image element
+ - 'hiResProcessed'     the hi res image versio has been processed into a new Image element
 
  Public Methods:
  - setSize( size )             sets the size of the pixelation to draw, does not redraw
@@ -53,7 +55,7 @@
 
  TODO
  X fix any references to 612 pixels
- _ configure draw method for scaling out for hi res
+ X configure draw method for scaling out for hi res
  X experiment with dettaching elements for faster canvas draws
  _ reset() function to clear all global instapixel vars (img, pix, tmpcnv, tmpctx, etc)
  _ aspectRatio code to draw the image
@@ -80,6 +82,10 @@
         ,   MSG_CANVAS_NOT_SUPPORTED = 'The <CANVAS> element is not supported in this browser.'
         ,   MSG_IMAGE_PATH_INVALID = 'Image path is not in a valid format.'
         ,   MSG_NO_IMAGE_LOADED = 'No image has been loaded to the InstaPIXEL object.'
+        ,   MSG_HI_RES_OUTPUT_INVALID = 'Hi res processing aborted, image size may be too large for browser.'
+        ,   MSG_HI_RES_OUTPUT_REQUESTED = 'Hi res output Image object requested.'
+        ,   MSG_HI_RES_OUTPUT_DELIVERED = 'Hi res output Image object successfully rendered.'
+        ,   MSG_SIZE_SET_SUCCESS = 'Pixel size set.'
         ,   HI_RES_DPI_CONVERSION = 300/72;
 
         // GLOBALS
@@ -146,13 +152,23 @@
         }
 
         plugin.output = function( inches ) {
+            message( MSG_TYPE_INFO, MSG_HI_RES_OUTPUT_REQUESTED, inches + ' inches');
+            $(element).trigger('hiResProcessing');
             var pixelData = drawPixelatedToCanvas( inches );
             var hiResCanvas = document.createElement('canvas')
             ,   hiResCtx    = hiResCanvas.getContext('2d');
+
+            if(!pixelData.width || !pixelData.height) {
+                message( MSG_TYPE_ERROR, MSG_HI_RES_OUTPUT_INVALID, inches + " inches requested" );
+                return;
+            }
+
             hiResCanvas.width = pixelData.width;
             hiResCanvas.height = pixelData.height;
             hiResCtx.putImageData(pixelData, 0, 0);
             var dataURL = hiResCanvas.toDataURL("image/png");
+            message( MSG_TYPE_INFO, MSG_HI_RES_OUTPUT_DELIVERED, inches + ' inches');
+            $(element).trigger('hiResProcessed');
             return dataURL;
         }
 
@@ -192,29 +208,29 @@
             var newcanv = document.createElement('canvas');
             var newctx = newcanv.getContext('2d');
             var canvScale;
+            var tileSize = plugin.getSize();
+            // size of the tile to be drawn
+            var canvTile = tileSize;
+
             if(inches) {
                 newcanv.width = inches / (canv.width / 72) * canv.width * HI_RES_DPI_CONVERSION;
-                newcanv.height = canv.height * ( newcanv.width / canv.width );
+                newcanv.height = (inches * (canv.height / canv.width)) / (canv.width / 72) * canv.width * HI_RES_DPI_CONVERSION;
                 canvScale = newcanv.width / canv.width; 
+                canvTile *= canvScale;
             } else {
                 newcanv.width = canv.width;
                 newcanv.height = canv.height;
                 canvScale = canv.width / tmpcanv.width; 
             }
-        
-            var tileSize = plugin.getSize();
-
-            // size of the tile to be drawn
-            var canvTile = tileSize * canvScale;
 
             // number of pixels in row or column 
-            var tiles = { 'x': Math.floor(tmpcanv.width / tileSize) 
-                        , 'y': Math.floor(tmpcanv.height / tileSize) };      
+            var tiles = { 'x': Math.floor(newcanv.width / canvTile) 
+                        , 'y': Math.floor(newcanv.height / canvTile) };      
 
             // pad values used to make the number of square tiles even given any size canvas
             // so there will appear to be a perfect fit for all squares drawn
-            var pad = { 'x': newcanv.width % canvTile
-                      , 'y': newcanv.height % canvTile };  // the total extra space on the canvas
+            var pad = { 'x': Math.floor(newcanv.width % canvTile)
+                      , 'y': Math.floor(newcanv.height % canvTile) };  // the total extra space on the canvas
 
             var padamt = {  'x' : pad.x / tiles.x
                         ,   'y' : pad.y / tiles.y };            // the padding per square that will be added to both sides
@@ -317,6 +333,7 @@
         plugin.setSize = function(size) {
             if(isNaN(size)) return false;
             _size = size;
+            message( MSG_TYPE_INFO, MSG_SIZE_SET_SUCCESS, size );
             return true;
         }
 
