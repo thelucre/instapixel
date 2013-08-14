@@ -1,10 +1,10 @@
 /***********************************************
- InstaPIXEL jQuery Plugin
- Author:    Eric Howard - http://www.thelucre.com
- URL:       http://www.instapixel.org
- GitHub:    https://github.com/thelucre/instapixel
- Version:   v0.1.3     
- 
+ InstaPIXEL - jQuery Plugin
+ Author:      Eric Howard - http://www.thelucre.com
+ URL:         http://www.instapixel.org
+ GitHub:      https://github.com/thelucre/instapixel
+ Version:     v0.2.0     
+ Description: Pixelates an image and draws onto the selected canvas element
 *****************************************************************************************
  The MIT License (MIT)
 
@@ -32,44 +32,29 @@
  Settings:
  - 'debug'              [true] false, will output information/errors to the console
  - 'imgURL'             ['.jpg'] image url to pixelate and draw to the canvas element
- - 'aspectRatio'        true [false], will maintain the image aspect ratio to the canvas size
- - 'startingPixelSize'  [10], initial size of the pixel drawn, relative to the original image dimensions
- - 'resizeCanvas'       [true] false, will resize the canvas to the passed in canvas size
+ - 'pixelSize'          [10], initial size of the pixel drawn, relative to the original image dimensions
+ - 'resizeCanvas'       [true] false, will resize the canvas to the lodaed image size
 
- Event Triggers:
+ Event Triggers:    
  - 'imageLoaded'        the image has been loaded to memory, check parameter success to confirm
  - 'imageLoading'       the plugin is loading the current image
  - 'imageParsing'       the image pixels are being parsed 
  - 'imageParsed'        the image pixels have been parsed
  - 'hiResProcessing'    the hi res version of being built into a new Image element
- - 'hiResProcessed'     the hi res image versio has been processed into a new Image element
+ - 'hiResProcessed'     the hi res image version has been processed into a new Image element
 
  Public Methods:
  - setSize( size )             sets the size of the pixelation to draw, does not redraw
  - getSize()                   gets the size of the pixels being drawn
- - setImage( URL, [redraw?] )  sets the image url with the option to reload and draw the image
- - getImage( )                 gets the currently loaded image url (might be messy if base64...)
+ - setImage( URL, [redraw] )   sets the image url with the option to reload and draw the image
+ - getImage( )                 gets the currently loaded image object (src will if base64...)
  - redraw( size )              redraws the canvas at a certain size, or the current size in no parameter given
  - clear()                     clears the current canvas
- - output( w, h, dpi )         returns an image object of the current canvas at WxH inches x dpi pixels 
+ - output( inches )            returns an a dataURI image of the current canvas scaled to the width in inches @ 300 dpi
 
- TODO
- X fix any references to 612 pixels
- X configure draw method for scaling out for hi res
- X experiment with dettaching elements for faster canvas draws
- _ reset() function to clear all global instapixel vars (img, pix, tmpcnv, tmpctx, etc)
- _ aspectRatio code to draw the image
- _ set triggers for output functions processing / complete
- _ constrain pixel size to > 0 and < width || height (floor too, for floats)
- _ if size == 1, jsut draw the original image
- _ set debug message for image dimensions, canvas dimensions, all triggers
  ***********************************************/
-
-
 (function($) {
-
     $.instapixel = function(element, options) {
-
         // CONSTANTS
         var INSTAPIXEL = 'InstaPIXEL'
         ,   MSG_TYPE_ERROR = 'ERROR'
@@ -85,49 +70,51 @@
         ,   MSG_HI_RES_OUTPUT_INVALID = 'Hi res processing aborted, image size may be too large for browser.'
         ,   MSG_HI_RES_OUTPUT_REQUESTED = 'Hi res output Image object requested.'
         ,   MSG_HI_RES_OUTPUT_DELIVERED = 'Hi res output Image object successfully rendered.'
+        ,   MSG_SIZE_SET_TOOSMALL = 'Set size too low. Defaulting size to 1.'
+        ,   MSG_SIZE_SET_TOOLARGE = 'Set size larger than canvas. Defaulting to max available.'
         ,   MSG_SIZE_SET_SUCCESS = 'Pixel size set.'
-        ,   HI_RES_DPI_CONVERSION = 300/72;
-
+        ,   MSG_PIXEL_DATA_PARSING = 'Attempting to parse pixel data to array.'
+        ,   MSG_PIXEL_DATA_PARSED = 'Pixel data parsed to array.'
+        ,   MSG_DRAWING_TO_CANVAS = 'Drawing to canvas element.'
+        ,   MSG_HI_RES_SIZE_INVALID = 'Output size not a number, zero, or negative number.'
+        ,   MSG_CANVAS_CLEARED = 'Canvas pixels have been cleared.'
+        ,   MSG_CANVAS_RESIZED = 'Canvas resized.'
+        ,   MSG_IMAGE_DIMENSIONS = 'Original image dimensions read.'
+        ,   MSG_IMAGE_SET = 'Image set.'
+        ,   HI_RES_DPI_CONVERSION = 300/72      // scale conversion from 72dpi to 300dpi 
+        ;
         // GLOBALS
         var image       // stores the loaded image
         ,   ctx         // ctx of the displayed canvas
         ,   canv        // displayed canvas element
         ,   tmpcanv     // buffer canvas for reading pixels
         ,   tmpctx      // buffer context for reading pixels 
-        ,   pix         // holds pixel data for the current image
+        ,   pix         // holds pixel color data for the current image
+        ,   _size       // private, size used for pixelation amount
+        ,   _imgURL     // private, url of image that has been loaded (or attempted to load)
         ;
-
         // DEFAULT SETTINGS
         var defaults = {
-            'debug':         true 
-        ,   'imgURL':        '.jpg' // some dummy
-        ,   'imgObject':     null
-        ,   'aspectRatio':   false
-        ,   'pixelSize':     10
-        ,   'resizeCanvas':  false
+            'debug':         true   // displays processing message and errors
+        ,   'imgURL':        '.jpg' // some dummy value, will not load properly
+        ,   'pixelSize':     10     // default size of pixelation, relative to the original image size
+        ,   'resizeCanvas':  false  // will resize the calling canvas element to the loaded image size
         }
-
-        var plugin = this;      // globalize the plugin 
+        var plugin = this;          // globalize the plugin 
 
         plugin.settings = {}
-        var _size
-        ,   _imgURL;
 
         var $element = $(element),
              element = element;
 
         plugin.init = function() {
             plugin.settings = $.extend({}, defaults, options);
-
             plugin.setSize(plugin.settings.pixelSize);
             plugin.setImage( plugin.settings.imgURL );
-
             message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
-
-            if(!meetsRequirements()) {
+            if(!meetsRequirements()) {  // canvas supported, element is of type canvas
                 return;
             }
-
             canv = element;
             ctx = canv.getContext('2d');
             tmpcanv = $(element).clone()[0];
@@ -138,19 +125,23 @@
         /*************************************************
          * PUBLIC METHODS
          *************************************************/
+        // redraws the pixelated canvas after setting the size passed in.
         plugin.redraw = function( size ) {
-            // code goes here
             if(plugin.setSize( size )) {
                 var pixelData = drawPixelatedToCanvas();
-                ctx.putImageData(pixelData, 0, 0);
+                if(pixelData)
+                    ctx.putImageData(pixelData, 0, 0);
             }
         }
 
+        // clean slate, clears the canvas to white.
         plugin.clear = function( ) {
-            // code goes here
             canv.width = canv.width;
+            message( MSG_TYPE_INFO, MSG_CANVAS_CLEARED );
         }
 
+        // creates a hi res image (300dpi) where the canvas element's width will be scaled 
+        // to the size passed for the inches parameter
         plugin.output = function( inches ) {
             message( MSG_TYPE_INFO, MSG_HI_RES_OUTPUT_REQUESTED, inches + ' inches');
             $(element).trigger('hiResProcessing');
@@ -158,11 +149,10 @@
             var hiResCanvas = document.createElement('canvas')
             ,   hiResCtx    = hiResCanvas.getContext('2d');
 
-            if(!pixelData.width || !pixelData.height) {
+            if(!pixelData || !pixelData.width || !pixelData.height) {
                 message( MSG_TYPE_ERROR, MSG_HI_RES_OUTPUT_INVALID, inches + " inches requested" );
                 return;
             }
-
             hiResCanvas.width = pixelData.width;
             hiResCanvas.height = pixelData.height;
             hiResCtx.putImageData(pixelData, 0, 0);
@@ -175,12 +165,12 @@
         /*************************************************
          * PRIVATE METHODS
          *************************************************/
-         // MAIN PIXEL PROCESSING
         /*********************************************
-         * loads the pix vairable with pixel data from 
-         * the buffered canvimg canvas
+         * loads the pix variable with pixel colors from 
+         * the buffered tmpcanv canvas
          *********************************************/
         var getPixelDataArray = function ( ) {
+            message( MSG_TYPE_INFO, MSG_PIXEL_DATA_PARSING );
             $(element).trigger("imageParsing");
             var imageData = tmpctx.getImageData(0, 0, image.width, image.height);
             var data = imageData.data;
@@ -197,22 +187,33 @@
                 pix[y][x] = 'rgb(' + red + ',' + green + ',' + blue + ')';  
               }
             }
-        } // end getPixelDataArray()
+            message( MSG_TYPE_INFO, MSG_PIXEL_DATA_PARSED );
+        } 
 
+        /********************************************
+         * draw the pixelated image to the element 
+         * scaled to size. if inches is passed, 
+         * the output will be scaled to the number
+         * of inches wide @ 300dpi
+         ********************************************/
         var drawPixelatedToCanvas = function( inches ) {
             if(typeof(pix) === undefined || !pix) { 
                 message( MSG_TYPE_ERROR, MSG_NO_IMAGE_LOADED );
                 return;
             }
+            message( MSG_TYPE_INFO, MSG_DRAWING_TO_CANVAS);
 
             var newcanv = document.createElement('canvas');
             var newctx = newcanv.getContext('2d');
             var canvScale;
             var tileSize = plugin.getSize();
-            // size of the tile to be drawn
             var canvTile = tileSize;
 
             if(inches) {
+                if(isNaN(inches) || inches <= 0) {
+                    message( MSG_TYPE_ERROR, MSG_HI_RES_SIZE_INVALID)
+                    return false;
+                }
                 newcanv.width = inches / (canv.width / 72) * canv.width * HI_RES_DPI_CONVERSION;
                 newcanv.height = (inches * (canv.height / canv.width)) / (canv.width / 72) * canv.width * HI_RES_DPI_CONVERSION;
                 canvScale = newcanv.width / canv.width; 
@@ -222,16 +223,13 @@
                 newcanv.height = canv.height;
                 canvScale = canv.width / tmpcanv.width; 
             }
-
             // number of pixels in row or column 
             var tiles = { 'x': Math.floor(newcanv.width / canvTile) 
                         , 'y': Math.floor(newcanv.height / canvTile) };      
-
             // pad values used to make the number of square tiles even given any size canvas
             // so there will appear to be a perfect fit for all squares drawn
             var pad = { 'x': Math.floor(newcanv.width % canvTile)
                       , 'y': Math.floor(newcanv.height % canvTile) };  // the total extra space on the canvas
-
             var padamt = {  'x' : pad.x / tiles.x
                         ,   'y' : pad.y / tiles.y };            // the padding per square that will be added to both sides
 
@@ -254,13 +252,17 @@
                     }
                 }
             }
-
-            var pixelimage = newctx.getImageData(0,0,newcanv.width, newcanv.height);
+            var pixelData = newctx.getImageData(0,0,newcanv.width, newcanv.height);
             $(element).trigger("imageParsed");
-            return pixelimage;
-        }
+            return pixelData;
+        } 
 
         // UTILITY FUNCTIONS
+        /********************************************
+         * attempts to load an image URL.
+         * if successful, the images will be parsed
+         * for pixelation. if unsuccessful, error
+         ********************************************/
         var loadImage = function( imgURL ) {
             image = new Image;
             image.onload = function() {
@@ -288,6 +290,10 @@
             message( MSG_TYPE_INFO, MSG_IMAGE_LOAD_ATTEMPT, image.src );
         }
 
+        /********************************************
+         * if debug mode on, all messages will be 
+         * written to the console
+         ********************************************/
         var message = function( type, msg, info) {
             if(plugin.settings.debug) {
                 info ? info = " [ " + info + " ] " : info = '';
@@ -295,31 +301,45 @@
             }
         }
 
+        /********************************************
+         * checks if the canvas elemetn is legal
+         ********************************************/
         var isCanvasSupported = function(){
             var elem = document.createElement('canvas');
             return !!(elem.getContext && elem.getContext('2d'));
         }
 
+        /********************************************
+         * resizes te buffer (tmpcanv) canvas and
+         * if the resizeCanvas setting is true, also
+         * the element selected by the plugin to the 
+         * loaded image dimensions
+         ********************************************/
         var resizeCanvases = function() {
             if(plugin.settings.resizeCanvas) {
                 canv.width = image.width;
                 canv.height = image.height;
+                message( MSG_TYPE_INFO, MSG_CANVAS_RESIZED, canv.width + " x " + canv.height );
             }
             tmpcanv.width = image.width;
             tmpcanv.height = image.height;
+            message( MSG_TYPE_INFO, MSG_IMAGE_DIMENSIONS, image.width + " x " + image.height );
         }
 
+        /********************************************
+         * checks for browser support of the canvas 
+         * element and verifies that the element
+         * selected is, in fact, of the canvas type
+         ********************************************/
         var meetsRequirements = function() {
             if(!isCanvasSupported()) {
                 message( MSG_TYPE_ERROR, MSG_CANVAS_NOT_SUPPORTED );
                 return false;
             }
-
             if(!$(element).is("canvas")) {
                 message( MSG_TYPE_ERROR, MSG_NOT_CANVAS_ELEMENT );
                 return false;
             }
-
             return true;
         }
 
@@ -332,7 +352,19 @@
 
         plugin.setSize = function(size) {
             if(isNaN(size)) return false;
-            _size = size;
+            if( size <= 0 ) {
+                message( MSG_TYPE_INFO, MSG_SIZE_SET_TOOSMALL, size );
+                size = 1;
+            }
+            if( size > canv.width ) {
+                message( MSG_TYPE_INFO, MSG_SIZE_SET_TOOLARGE, size );
+                size = canv.width;
+            }
+            if( size > canv.height ) {
+                message( MSG_TYPE_INFO, MSG_SIZE_SET_TOOLARGE, size );
+                size = canv.height;
+            }
+            plugin._size = Math.floor(size); // should be an integer value
             message( MSG_TYPE_INFO, MSG_SIZE_SET_SUCCESS, size );
             return true;
         }
@@ -343,6 +375,7 @@
                 return;
             }
             plugin._imgURL = imgURL;
+            message( MSG_TYPE_INFO, MSG_IMAGE_SET, imgURL );
             if(redraw) { loadImage( imgURL ); }
         }
 
@@ -350,19 +383,23 @@
             return plugin._imgURL;
         }
 
+        // seriously, start it up.
         plugin.init();
-
     }
 
     $.fn.instapixel = function(options) {
-
+        /********************************************
+         * sets the plugin to the selected element's
+         * data value. this creates a state-ful 
+         * presence for access to the public methods
+         * and attributes. kinda hacky.
+         * thanks to: http://stefangabos.ro/jquery/jquery-plugin-boilerplate-revisited/
+         ********************************************/
         return this.each(function() {
             if (undefined == $(this).data('instapixel')) {
                 var plugin = new $.instapixel(this, options);
                 $(this).data('instapixel', plugin);
             }
         });
-
     }
-
 })(jQuery);
