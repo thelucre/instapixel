@@ -48,7 +48,7 @@
  - getSize()                   gets the size of the pixels being drawn
  - setImage( URL, [redraw] )   sets the image url with the option to reload and draw the image
  - getImage( )                 gets the currently loaded image object (src will if base64...)
- - redraw( size )              redraws the canvas at a certain size, or the current size in no parameter given
+ - redraw( [size] )            redraws the canvas at a certain size, or the current size in no parameter given
  - clear()                     clears the current canvas
  - output( inches )            returns an a dataURI image of the current canvas scaled to the width in inches @ 300 dpi
 
@@ -139,10 +139,16 @@
          *************************************************/
         // redraws the pixelated canvas after setting the size passed in.
         plugin.redraw = function( size ) {
-            if(plugin.setSize( size )) {
-                var pixelData = drawPixelatedToCanvas();
-                if(pixelData)
-                    ctx.putImageData(pixelData, 0, 0);
+            if( size ) {
+                if(!plugin.setSize( size )) 
+                    return false; 
+            }
+            var pixelData = drawPixelatedToCanvas();
+            if(pixelData) {
+                ctx.putImageData(pixelData, 0, 0);
+                return true;
+            } else {
+                return false;
             }
         }
 
