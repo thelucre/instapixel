@@ -109,21 +109,18 @@
 
         plugin.init = function() {
             plugin.settings = $.extend({}, defaults, options);
-<<<<<<< HEAD
 
             if(!meetsRequirements()) {  // canvas supported, element is of type canvas
                 return;
             }
             message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
-
-=======
             plugin.setSize(plugin.settings.pixelSize);
             plugin.setImage( plugin.settings.imgURL );
             message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
             if(!meetsRequirements()) {  // canvas supported, element is of type canvas
                 return;
             }
->>>>>>> a129486bddaf64aa9af60dbe6477dd2c14a50c11
+
             canv = element;
             ctx = canv.getContext('2d');
             tmpcanv = $(element).clone()[0];
