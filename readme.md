@@ -16,7 +16,7 @@ The plugin is stateful, so you only need to call it once. After the initial call
 
 One awesome feature is hi-res output. You can have your very own 8-bit abstract art at 12" wide x 300dpi using:
 
-	$('#mycanvas').data('instapixel').output( 12 ); 
+	var myDataURL = $('#mycanvas').data('instapixel').output( 12 ); 
 
 Options
 ------------
