@@ -22,9 +22,9 @@ One awesome feature is hi-res output. You can have your very own 8-bit abstract 
 
 Perhaps you should hide the loader when the processing is complete (the big images can take a bit...)
   
-  $('#mycanvas').on("hiResProcessed", function() {
-    $('#loader').fadeOut();
-  });
+	$('#mycanvas').on("hiResProcessed", function() {
+		$('#loader').fadeOut();
+	});
 
 Options
 ------------
