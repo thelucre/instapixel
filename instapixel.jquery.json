@@ -1,0 +1,35 @@
+{
+    "name": "instapixel",
+    "title": "InstaPIXEL",
+    "description": "jQuery plugin to pixelate an image on a canvas element",
+    "keywords": [
+        "canvas",
+        "graphics",
+        "pixel",
+        "pixelate"
+    ],
+    "version": "0.2.0",
+    "author": {
+        "name": "Eric Howard",
+        "url": "http://www.thelucre.com"
+    },
+    "maintainers": [
+        {
+            "name": "Eric Howard",
+            "email": "hello@thelucre.com",
+            "url": "http://www.thelucre.com"
+        }
+    ],
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "http://opensource.org/licenses/MIT"
+        }
+    ],
+    "bugs": "https://github.com/thelucre/instapixel/issues",
+    "homepage": "https://github.com/thelucre/instapixel",
+    "docs": "https://github.com/thelucre/instapixel",
+    "dependencies": {
+        "jquery": ">=1.5"
+    }
+}
