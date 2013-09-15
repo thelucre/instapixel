@@ -3,6 +3,8 @@ InstaPIXEL jQuery Plugin
 
 *For ye, of 8-bit persuasion*
 
+[http://www.instapixel.org](http://www.instapixel.org)
+
 Basic Usage
 ------------
 
@@ -50,3 +52,58 @@ Options
     <td>If true, the canvas element will resize to the original image dimensions</td>
   </tr>
 </table>
+
+Methods
+------------
+
+<table>
+  <tr>
+    <th>Name</th><th>Signature</th><th>Return Value</th><th>Description</th>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
+
+Event Triggers
+------------
