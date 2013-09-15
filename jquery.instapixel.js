@@ -114,8 +114,8 @@
                 return;
             }
             message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
-            plugin.setSize(plugin.settings.pixelSize);
-            plugin.setImage( plugin.settings.imgURL );
+/*            plugin.setSize(plugin.settings.pixelSize);
+            plugin.setImage( plugin.settings.imgURL );*/
             message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
             if(!meetsRequirements()) {  // canvas supported, element is of type canvas
                 return;
@@ -336,8 +336,8 @@
                 canv.height = image.height;
                 message( MSG_TYPE_INFO, MSG_CANVAS_RESIZED, canv.width + " x " + canv.height );
             }
-            tmpcanv.width = image.width;
-            tmpcanv.height = image.height;
+            tmpcanv.width = canv.width;
+            tmpcanv.height = canv.height;
             message( MSG_TYPE_INFO, MSG_IMAGE_DIMENSIONS, image.width + " x " + image.height );
         }
 
