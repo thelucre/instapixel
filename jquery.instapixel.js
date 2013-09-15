@@ -110,12 +110,6 @@
         plugin.init = function() {
             plugin.settings = $.extend({}, defaults, options);
 
-            if(!meetsRequirements()) {  // canvas supported, element is of type canvas
-                return;
-            }
-            message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
-/*            plugin.setSize(plugin.settings.pixelSize);
-            plugin.setImage( plugin.settings.imgURL );*/
             message( MSG_TYPE_INFO, MSG_INSTAPIXEL_STARTED, this.selector);
             if(!meetsRequirements()) {  // canvas supported, element is of type canvas
                 return;

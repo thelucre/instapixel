@@ -20,6 +20,12 @@ One awesome feature is hi-res output. You can have your very own 8-bit abstract 
 
 	var myDataURL = $('#mycanvas').data('instapixel').output( 12 ); 
 
+Perhaps you should hide the loader when the processing is complete (the big images can take a bit...)
+  
+  $('#mycanvas').on("hiResProcessed", function() {
+    $('#loader').fadeOut();
+  });
+
 Options
 ------------
 
@@ -61,49 +67,78 @@ Methods
     <th>Name</th><th>Signature</th><th>Return Value</th><th>Description</th>
   </tr>
   <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>setSize</td>
+    <td>( int size )</td>
+    <td>bool for success/fail</td>
+    <td>set pixel size to draw. does not redraw</td>
   </tr>
   <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>getSize</td>
+    <td>none</td>
+    <td>int size</td>
+    <td>gets the current pixel size being drawn</td>
   </tr>
   <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>setImage</td>
+    <td>( str url, [bool redraw]</td>
+    <td> none </td>
+    <td>set the image to pixelate. pass true to redraw after async image load</td>
   </tr>
   <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>getImage</td>
+    <td>none</td>
+    <td>str url</td>
+    <td>returns the currently drawn image</td>
   </tr>
   <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>redraw</td>
+    <td>( [int size] )</td>
+    <td>bool for success/fail</td>
+    <td>redraw the pixelated canvas. optional size setting parameter</td>
   </tr>
   <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>clear</td>
+    <td>none</td>
+    <td>none</td>
+    <td>clears the parent canvas element</td>
   </tr>
   <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>output</td>
+    <td>( float inches )</td>
+    <td>dataURL of canvas</td>
+    <td>returns a dataURL image of the current canvas scaled to the number of inches passed (relative to width) @ 300dpi</td>
   </tr>
 </table>
 
 
 Event Triggers
 ------------
+
+<table>
+  <tr>
+    <th>Name</th><th>Description</th>
+  </tr>
+  <tr>
+    <td>'imageLoaded'</td>
+    <td>the image has been loaded to memory, check parameter success to confirm</td>
+  </tr>
+  <tr>
+    <td>'imageLoading'</td>
+    <td>the plugin has started loading the current image</td>
+  </tr>
+  <tr>
+    <td>'imageParsing'</td>
+    <td>the image pixels are being parsed </td>
+  </tr>
+  <tr>
+    <td>'imageParsed'</td>
+    <td>the image pixels have been parsed</td>
+  </tr>
+  <tr>
+    <td>'hiResProcessing'</td>
+    <td>the hi res version of being built into a new dataURL image</td>
+  </tr>
+  <tr>
+    <td>'hiResProcessed'</td>
+    <td>the hi res image version has been processed into a new dataURL image</td>
+  </tr>
