@@ -3,7 +3,7 @@
  Author:      Eric Howard - http://www.thelucre.com
  URL:         http://www.instapixel.org
  GitHub:      https://github.com/thelucre/instapixel
- Version:     v0.2.0     
+ Version:     v0.2.1     
  Description: Pixelates an image and draws onto the selected canvas element
 *****************************************************************************************
  The MIT License (MIT)
@@ -34,7 +34,7 @@
  - 'imgURL'             ['.jpg'] image url to pixelate and draw to the canvas element
  - 'pixelSize'          [10], initial size of the pixel drawn, relative to the original image dimensions
  - 'resizeCanvas'       [true] false, will resize the canvas to the lodaed image size
-
+ - 'trueSquare'         [false] if true, square pixels will be padded to fit the canvas just right
  Event Triggers:    
  - 'imageLoaded'        the image has been loaded to memory, check parameter success to confirm
  - 'imageLoading'       the plugin is loading the current image
@@ -99,6 +99,7 @@
         ,   'imgURL':        '.jpg' // some dummy value, will not load properly
         ,   'pixelSize':     10     // default size of pixelation, relative to the original image size
         ,   'resizeCanvas':  false  // will resize the calling canvas element to the loaded image size
+        ,   'trueSquare':    false  // keep true square ratio, no padding to cover remainder of image
         }
         var plugin = this;          // globalize the plugin 
 
@@ -235,12 +236,19 @@
             // number of pixels in row or column 
             var tiles = { 'x': Math.floor(newcanv.width / canvTile) 
                         , 'y': Math.floor(newcanv.height / canvTile) };      
+            
+            // draw true square ratio, if set
+            if(plugin.settings.trueSquare) {
+                var pad = { 'x' : 0, 'y': 0 };
+                var padamt = pad;
+            } else {
             // pad values used to make the number of square tiles even given any size canvas
             // so there will appear to be a perfect fit for all squares drawn
-            var pad = { 'x': Math.floor(newcanv.width % canvTile)
-                      , 'y': Math.floor(newcanv.height % canvTile) };  // the total extra space on the canvas
-            var padamt = {  'x' : pad.x / tiles.x
-                        ,   'y' : pad.y / tiles.y };            // the padding per square that will be added to both sides
+                var pad = { 'x': Math.floor(newcanv.width % canvTile)
+                          , 'y': Math.floor(newcanv.height % canvTile) };  // the total extra space on the canvas
+                var padamt = {  'x' : pad.x / tiles.x
+                            ,   'y' : pad.y / tiles.y }; // the padding per square that will be added to both sides
+            }
 
             for(var x = 0; x < tiles.x; x++) {
               for(var y = 0; y < tiles.y; y++) { 
