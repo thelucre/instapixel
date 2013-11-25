@@ -57,6 +57,12 @@ Options
     <td>false</td>
     <td>If true, the canvas element will resize to the original image dimensions</td>
   </tr>
+  <tr>
+    <td>trueSquare</td>
+    <td>true / false</td>
+    <td>false</td>
+    <td>If true, square pixels will be padded to fit the canvas just right</td>
+  </tr>
 </table>
 
 Methods

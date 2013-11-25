@@ -35,6 +35,7 @@
  - 'pixelSize'          [10], initial size of the pixel drawn, relative to the original image dimensions
  - 'resizeCanvas'       [true] false, will resize the canvas to the lodaed image size
  - 'trueSquare'         [false] if true, square pixels will be padded to fit the canvas just right
+ 
  Event Triggers:    
  - 'imageLoaded'        the image has been loaded to memory, check parameter success to confirm
  - 'imageLoading'       the plugin is loading the current image
