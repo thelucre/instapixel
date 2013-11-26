@@ -49,7 +49,7 @@
  - getSize()                   gets the size of the pixels being drawn
  - setImage( URL, [redraw] )   sets the image url with the option to reload and draw the image
  - getImage( )                 gets the currently loaded image object (src will if base64...)
- - redraw( [size] )            redraws the canvas at a certain size, or the current size in no parameter given
+ - redraw( options )           redraws the canvas. options: 'size' = square size in pixels. 'resize' = resize to fit canvas 
  - clear()                     clears the current canvas
  - output( inches )            returns an a dataURI image of the current canvas scaled to the width in inches @ 300 dpi
 
@@ -131,8 +131,11 @@
          * PUBLIC METHODS
          *************************************************/
         // redraws the pixelated canvas after setting the size passed in.
-        plugin.redraw = function( size ) {
-            if( size ) {
+        plugin.redraw = function( options ) {
+            if( options.resize ) {
+                plugin.resizeCanvas();
+            }
+            if( options.size ) {
                 if(!plugin.setSize( size )) 
                     return false; 
             }
@@ -173,6 +176,11 @@
             return dataURL;
         }
 
+        plugin.resizeCanvas = function() {
+            resizeCanvases();
+            getPixelDataArray();
+        }
+
         /*************************************************
          * PRIVATE METHODS
          *************************************************/
@@ -183,17 +191,17 @@
         var getPixelDataArray = function ( ) {
             message( MSG_TYPE_INFO, MSG_PIXEL_DATA_PARSING );
             $(element).trigger("imageParsing");
-            var imageData = tmpctx.getImageData(0, 0, image.width, image.height);
+            var imageData = tmpctx.getImageData(0, 0, tmpcanv.width, tmpcanv.height);
             var data = imageData.data;
             pix = { };
             // iterate over all pixels based on x and y coordinates
-            for(var y = 0; y < image.height; y++) {
+            for(var y = 0; y < tmpcanv.height; y++) {
               pix[y] = { };
               // loop per row index
-              for(var x = 0; x < image.width; x++) {
-                var red = data[((image.width * y) + x) * 4];
-                var green = data[((image.width * y) + x) * 4 + 1];
-                var blue = data[((image.width * y) + x) * 4 + 2];
+              for(var x = 0; x < tmpcanv.width; x++) {
+                var red = data[((tmpcanv.width * y) + x) * 4];
+                var green = data[((tmpcanv.width * y) + x) * 4 + 1];
+                var blue = data[((tmpcanv.width * y) + x) * 4 + 2];
                 // push onto array
                 pix[y][x] = 'rgb(' + red + ',' + green + ',' + blue + ')';  
               }
@@ -219,6 +227,9 @@
             var canvScale;
             var tileSize = plugin.getSize();
             var canvTile = tileSize;
+            console.log(tmpcanv);
+            console.log(canv);
+            console.log(newcanv);
 
             if(inches) {
                 if(isNaN(inches) || inches <= 0) {
@@ -258,8 +269,8 @@
 
                     if(colorCoords.x < 0 ) colorCoords.x = 0;
                     if(colorCoords.y < 0) colorCoords.y = 0;
-                    if(colorCoords.x > image.width -1 ) colorCoords.x = image.width -1;
-                    if(colorCoords.y > image.height -1) colorCoords.y = image.height -1;
+                    if(colorCoords.x > newcanv.width -1 ) colorCoords.x = newcanv.width -1;
+                    if(colorCoords.y > newcanv.height -1) colorCoords.y = newcanv.height -1;
                     if(pix[colorCoords.y] && pix[colorCoords.y][colorCoords.x]) {
                         newctx.fillStyle = pix[colorCoords.y][colorCoords.x];
                         newctx.fillRect(   
@@ -293,10 +304,9 @@
                     this.onerror();
                     return;
                 }
-                resizeCanvases();
-                tmpctx.drawImage(this, 0, 0, canv.width, canv.height);
                 message( MSG_TYPE_INFO, MSG_IMAGE_LOADED, this.src );
                 $(element).trigger("imageLoaded", true);
+                resizeCanvases();
                 getPixelDataArray( );
                 plugin.redraw( plugin.getSize() );
             };
@@ -339,8 +349,13 @@
                 canv.height = image.height;
                 message( MSG_TYPE_INFO, MSG_CANVAS_RESIZED, canv.width + " x " + canv.height );
             }
+            console.log(canv);
             tmpcanv.width = canv.width;
             tmpcanv.height = canv.height;
+            console.log("resize");
+            console.log(tmpcanv);
+            console.log(canv);
+            tmpctx.drawImage(image, 0, 0, canv.width, canv.height);
             message( MSG_TYPE_INFO, MSG_IMAGE_DIMENSIONS, image.width + " x " + image.height );
         }
 
