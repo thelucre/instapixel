@@ -3,7 +3,7 @@ InstaPIXEL jQuery Plugin
 
 *For ye, of 8-bit persuasion*
 
-[http://www.instapixel.org](http://www.instapixel.org)
+[http://thelucre.github.io/instapixel/](http://thelucre.github.io/instapixel/)
 
 Basic Usage
 ------------
